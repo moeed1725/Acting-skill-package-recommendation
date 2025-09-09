@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,33 +10,34 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
- <div class="d-flex justify-content-center mt-5">
-  <img src="./Images/Logo.jpeg" alt="Logo" style="width:55%; height:auto; max-height:500px;">
-</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <div class="d-flex justify-content-center mt-5">
+    <img src="./Images/Logo.jpeg" alt="Logo" style="width:40%; height:auto; max-height:150px;">
+  </div>
 
 </head>
+
 <body>
   <div id="front" class="page  ">
     <h1 class="text-center mt-5 customfont">Welcome to the Schauspiel Fabrik!</h1>
     <p class="text-center mt-3 customfont">Find out which training program suits you best.</p>
-   <div class="text-center mt-5 ">
-  <button class="btn option-btn btncolor" onclick="startQuiz()">Start</button>
-</div>
+    <div class="text-center mt-5 ">
+      <button class="btn option-btn btncolor customfont" onclick="startQuiz()">Start</button>
+    </div>
 
   </div>
 
-  <div id="questions" class="page">
+  <div id="questions" class="page customfont">
     <div id="app"></div>
   </div>
 
-  <div id="result" class="page">
+  <div id="result" class="page customfont">
     <div id="result-app"></div>
   </div>
 
-  <div id="packages" class="customfont page">
+  <!-- <div id="packages" class="customfont page  ">
    
-   <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+   <div class="d-flex justify-content-center align-items-center min-vh-100 ">
   <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%; border-radius: 15px;">
     <h2 class="text-center mb-4 customcolor fw-bold">Choose your package</h2>
  <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
@@ -45,7 +46,7 @@
   <label class="form-item mb-3 p-3 border labelbackgroud rounded d-flex align-items-center cursor-pointer">
     <input class="form-check-input me-3" type="checkbox" id="moduleA" value="A" checked>
     <span class="fw-semibold">
-      Basisjahr <br><span class="text-muted small">CHF 790/Monat</span>
+      Basisjahr <br><span class="text-muted small customfont">CHF 790/Monat</span>
     </span>
   </label>
 
@@ -83,30 +84,29 @@
 </div>
 
    
-  </div>
+  </div> -->
 
-  <div id="summary" class="page">
+  <div id="summary" class="page customfont">
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
       <div class="card shadow-lg p-4" style="max-width: 800px; width: 100%;">
         <h2 class="text-center fw-bold customcolor mb-4">Summary & Contact</h2>
         <h3 class="text-center mb-3 colordark ">Your Selected packages</h3>
-<ul id="selected-packages-list" 
-    class="list-group rounded  listback mb-4 mx-auto text-center align-items-center" 
-    style="max-width: 400px; width: 100%;">
-</ul>
+        <ul id="selected-packages-list" class="list-group rounded  listback mb-4 mx-auto text-center align-items-center"
+          style="max-width: 400px; width: 100%;">
+        </ul>
 
-        <p id="total-price"  class="colordark fw-semibold text-center mb-4"></p>
-       <form id="contact-form" class="d-flex flex-column gap-3">
-  <input type="text" id="name" name="name" class="form-control formborder" placeholder="Name" required>
-  <input type="email" id="email" name="email" class="form-control formborder" placeholder="E-Mail" required>
-  <input type="tel" id="phone" name="phone" class="form-control formborder" placeholder="Telefonnummer" required>
-  <textarea id="message" name="message" class="form-control formborder" placeholder="Your Message"></textarea>
+        <p id="total-price" class="colordark fw-semibold text-center mb-4"></p>
+        <form id="contact-form" class="d-flex flex-column gap-3"> <input type="text" id="name" name="name"
+            class="form-control formborder" placeholder="Name" required> <input type="email" id="email" name="email"
+            class="form-control formborder" placeholder="E-Mail" required> <input type="tel" id="phone" name="phone"
+            class="form-control formborder" placeholder="Telefonnummer" required> <!-- Hidden input for modules -->
+          <input type="hidden" id="selectedModules" name="selectedModules">
+          <div class="d-flex justify-content-center gap-3"> <button type="button" class="btn btncolor flex-grow-1"
+              onclick="generatePDF(this)">PDF Download</button> <button type="button" class="btn btncolor flex-grow-1"
+              onclick="sendEmail()">Send by email</button> </div>
+        </form>
 
-  <div class="d-flex justify-content-center gap-3">
-    <button type="button" class="btn btncolor flex-grow-1" onclick="generatePDF(this)">PDF Download</button>
-    <button type="button" class="btn btncolor flex-grow-1" onclick="sendEmail()">PDF send by email</button>
-  </div>
-</form>
+
 
         <button class="btn btncolor mt-4 w-100" onclick="restartQuiz()">Start a new</button>
       </div>
@@ -115,8 +115,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
-
-
-
-

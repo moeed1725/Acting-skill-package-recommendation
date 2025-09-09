@@ -846,6 +846,10 @@ body {
 
     .formborder{
         border:1px solid #FB5D5D !important;
+        
+    }
+    .formborder:focus{
+border-color: #FB5D5D !important;
     }
 
     .colordark{

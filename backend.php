@@ -4,16 +4,21 @@ use PHPMailer\PHPMailer\Exception;
 
 require './vendor/autoload.php';
 
+header('Content-Type: application/json'); // ✅ return JSON always
+
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405);
+    echo json_encode(["status" => "error", "message" => "Method Not Allowed"]);
+    exit;
+}
+
+$name  = trim($_POST['name']  ?? '');
+$email = trim($_POST['email'] ?? '');
+$phone = trim($_POST['phone'] ?? '');
+
 $mail = new PHPMailer(true);
 
-// Collect form input safely
-$name    = trim($_POST['name']  ?? '');
-$email   = trim($_POST['email'] ?? '');
-$phone   = trim($_POST['phone'] ?? '');
-$message = trim($_POST['message'] ?? '');
-
 try {
-    $mail->SMTPDebug = 0; // set 2 only if debugging
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
@@ -24,35 +29,27 @@ try {
 
     $mail->setFrom('moeed1231@gmail.com', 'MOEED TECH');
 
-    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $mail->addReplyTo($email, $name ?: 'MD');
-    }
-
-    // Send to user
-    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $mail->addReplyTo($email, $name ?: 'Visitor');
         $mail->addAddress($email, $name);
     }
 
     $mail->isHTML(true);
     $mail->Subject = 'SUMMARY';
     $mail->Body = "
-        <h2>New Contact Form Message</h2>
-        <p><strong>Name:</strong> ".htmlspecialchars($name)."</p>
-        <p><strong>Email:</strong> ".htmlspecialchars($email)."</p>
-        ".($phone ? "<p><strong>Phone:</strong> ".htmlspecialchars($phone)."</p>" : "")."
-        <hr>
-        <p>".nl2br(htmlspecialchars($message))."</p>
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> " . htmlspecialchars($name) . "</p>
+        <p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>
+        " . ($phone ? "<p><strong>Phone:</strong> " . htmlspecialchars($phone) . "</p>" : "") . "
     ";
-    $mail->AltBody = "Name: $name\nEmail: $email\nPhone: $phone\n\nMessage:\n$message";
+    $mail->AltBody = "Name: $name\nEmail: $email\nPhone: $phone\n";
 
-    // ✅ Only send once
     $mail->send();
 
-    // ✅ Redirect after success
-    header("Location: index.html?status=success");
+    echo json_encode(["status" => "success", "message" => "Email sent successfully"]);
     exit;
 
 } catch (Exception $e) {
-    header("Location: index.html?status=error");
+    echo json_encode(["status" => "error", "message" => $mail->ErrorInfo]);
     exit;
 }

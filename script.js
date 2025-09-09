@@ -75,9 +75,8 @@ function clearNode(node) {
 }
 
 function calcPercent() {
-  return Math.round(((step + 1) / questions.length) * 100);
+  return Math.round(((step) / questions.length) * 100);
 }
-
 function renderQuestionCard() {
   if (!appEl) {
     console.error("Element with id 'app' not found");
@@ -91,11 +90,14 @@ function renderQuestionCard() {
     return;
   }
   const totalSteps = questions.length;
-  const percent = calcPercent();
+
+  // ✅ Percent calculation fixed
+  const percent = Math.round((step / totalSteps) * 100);
 
   const wrap = document.createElement('div');
   wrap.className = 'd-flex flex-column align-items-center mt-5 min-vh-100 bg-white text-center position-relative w-100 fade-in';
 
+  // Back button
   const backBtn = document.createElement('button');
   backBtn.className = 'btn btncolor shadow rounded-circle position-absolute top-0 start-0 m-3';
   backBtn.style.width = '48px';
@@ -110,6 +112,7 @@ function renderQuestionCard() {
   };
   wrap.appendChild(backBtn);
 
+  // Progress circle
   const progressWrap = document.createElement('div');
   progressWrap.className = 'position-relative mb-4';
   progressWrap.style.width = '200px';
@@ -140,6 +143,7 @@ function renderQuestionCard() {
   fgCircle.setAttribute('fill', 'none');
   fgCircle.setAttribute('stroke-linecap', 'round');
   fgCircle.setAttribute('stroke-dasharray', String(circumference));
+
   const offset = circumference * (1 - percent / 100);
   fgCircle.setAttribute('stroke-dashoffset', String(offset));
 
@@ -154,16 +158,19 @@ function renderQuestionCard() {
 
   wrap.appendChild(progressWrap);
 
+  // Step label (shows Step 1, but circle stays 0%)
   const stepP = document.createElement('p');
   stepP.className = 'text-muted fw-semibold mb-2';
   stepP.textContent = `Step ${step + 1} of ${totalSteps}`;
   wrap.appendChild(stepP);
 
+  // Question
   const h2 = document.createElement('h2');
   h2.className = 'fw-bold mb-4 text-2xl';
   h2.textContent = q.text;
   wrap.appendChild(h2);
 
+  // Options
   const optionsWrap = document.createElement('div');
   optionsWrap.className = 'd-flex flex-row gap-3 justify-content-center flex-wrap';
   q.options.forEach(opt => {
@@ -179,6 +186,7 @@ function renderQuestionCard() {
   });
   wrap.appendChild(optionsWrap);
 
+  // Feedback row
   const feedbackRow = document.createElement('p');
   feedbackRow.id = 'row-feedback';
   feedbackRow.className = 'mt-2 fade-in text-lg';
@@ -187,6 +195,7 @@ function renderQuestionCard() {
 
   appEl.appendChild(wrap);
 }
+
 
 function onAnswer(answer, feedbackText, msgEl) {
   if (!msgEl) {
@@ -220,8 +229,10 @@ function calculateResult() {
     console.error("Incomplete answers:", answers);
     return { name: 'Error', modules: [], totalPrice: 0, duration: 0 };
   }
+
   let selectedModulesIds = [];
   const a = answers;
+
   if (a.experience === 'No' && a.career === 'No') {
     selectedModulesIds = rules.basics_noCareer;
   } else if (a.experience === 'No' && a.career === 'Maybe') {
@@ -231,11 +242,20 @@ function calculateResult() {
   } else if (a.experience === 'Yes') {
     selectedModulesIds = rules.already_basics;
   }
+
+  // ✅ Fallback to Module A if no modules found
+  if (selectedModulesIds.length === 0) {
+    selectedModulesIds = ['A'];
+  }
+
   const moduleObjects = selectedModulesIds.map(id => modules[id]).filter(Boolean);
   const totalPrice = moduleObjects.reduce((sum, m) => sum + ((m.price || 0) * 12), 0);
 
   return { name: 'Recommended Package', modules: moduleObjects, totalPrice, duration: 12 };
+  
+
 }
+
 
 function renderResultPage() {
   showPage('result');
@@ -258,6 +278,21 @@ function renderResultPage() {
   card.style.maxWidth = '500px';
   card.style.width = '100%';
   card.style.borderRadius = '15px';
+
+  // Back button
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn btncolor shadow rounded-circle position-absolute top-16 left-16';
+  backBtn.style.width = '48px';
+  backBtn.style.height = '48px';
+  backBtn.textContent = '←';
+  backBtn.onclick = () => {
+    backBtn.classList.add('subtle-scale');
+    step = questions.length - 1; // Set to last question index (e.g., 3 for question 4)
+    console.log("Back to question, step:", step);
+    renderQuestionCard();
+    setTimeout(() => backBtn.classList.remove('subtle-scale'), 200);
+  };
+  page.appendChild(backBtn);
 
   const title = document.createElement('h2');
   title.className = 'h4 fw-bold colordark mb-3';
@@ -285,10 +320,10 @@ function renderResultPage() {
 
   const proceedBtn = document.createElement('button');
   proceedBtn.className = 'btn btncolor px-4 fw-semibold btn-gradient';
-  proceedBtn.textContent = 'Select Package';
+  proceedBtn.textContent = 'Purchase';
   proceedBtn.onclick = () => {
     proceedBtn.classList.add('subtle-scale');
-    proceedToPackages();
+    proceedToSummary();
     setTimeout(() => proceedBtn.classList.remove('subtle-scale'), 200);
   };
 
@@ -325,54 +360,49 @@ function proceedToPackages() {
 }
 
 function proceedToSummary() {
-  selectedModules = [];
-  Object.keys(modules).forEach(key => {
-    const checkbox = document.getElementById(`module${key}`);
-    if (checkbox && checkbox.checked) {
-      selectedModules.push(modules[key]);
-    }
-  });
+  const result = calculateResult(); // get recommended modules
+  selectedModules = result.modules; // set global selectedModules
+  showSummary(); // show summary page
+}
 
-  if (selectedModules.length === 0) {
-    alert('Please select at least one package.');
-    return;
-  }
 
+// ✅ now separate function
+function showSummary() {
   showPage('summary');
   const listEl = document.getElementById('selected-packages-list');
   clearNode(listEl);
+
+  let totalPrice = 0;
   selectedModules.forEach(m => {
     const li = document.createElement('li');
     li.className = 'list-group-item listback rounded-xl mb-2 p-2';
     li.textContent = `${m.name} – CHF ${m.price}/month`;
     listEl.appendChild(li);
+    totalPrice += m.price * 12;
   });
 
-  const totalPrice = selectedModules.reduce((sum, m) => sum + ((m.price || 0) * 12), 0);
-  document.getElementById('total-price').textContent = `Total: CHF ${totalPrice} for 12 months`;
+  document.getElementById('total-price').textContent =
+    `Total: CHF ${totalPrice} for 12 months`;
 
-  const pdfBtn = document.querySelector('#contact-form .btn-gradient:nth-child(1)');
-  const emailBtn = document.querySelector('#contact-form .btn-gradient:nth-child(2)');
-  pdfBtn.addEventListener('click', () => {
-    pdfBtn.classList.add('subtle-scale');
-    generatePDF();
-    setTimeout(() => pdfBtn.classList.remove('subtle-scale'), 200);
-  });
-  emailBtn.addEventListener('click', () => {
-    emailBtn.classList.add('subtle-scale');
-    sendEmail();
-    setTimeout(() => emailBtn.classList.remove('subtle-scale'), 200);
-  });
+  // Add back button to summary page
+  const summaryPage = document.getElementById('summary');
+  const existingBackBtn = summaryPage.querySelector('.back-btn');
+  if (existingBackBtn) existingBackBtn.remove(); // Remove any existing back button
 
-  const restartBtn = document.querySelector('#summary .btn-secondary');
-  if (restartBtn) {
-    restartBtn.addEventListener('click', () => {
-      restartBtn.classList.add('subtle-scale');
-      restartQuiz();
-      setTimeout(() => restartBtn.classList.remove('subtle-scale'), 200);
-    });
-  }
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn btncolor shadow rounded-circle position-absolute top-16 left-16 back-btn';
+  backBtn.style.width = '48px';
+  backBtn.style.height = '48px';
+  backBtn.textContent = '←';
+  backBtn.onclick = () => {
+    backBtn.classList.add('subtle-scale');
+    renderResultPage(); // Go back to recommendation page
+    setTimeout(() => backBtn.classList.remove('subtle-scale'), 200);
+  };
+  summaryPage.insertBefore(backBtn, summaryPage.firstChild);
 }
+
+
 async function generatePDF(button) {
   console.log("Generating PDF...");
   const name = document.getElementById('name').value;
@@ -390,7 +420,7 @@ async function generatePDF(button) {
 
   // Load and scale logo
   const logo = new Image();
-  logo.src = "./images/logo.jpeg";
+  logo.src = "./logo.jpeg";
   await new Promise(resolve => { logo.onload = resolve; });
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -437,64 +467,68 @@ async function generatePDF(button) {
   setTimeout(() => button.classList.remove('subtle-scale'), 200);
 }
 
-function sendEmail() {
-  console.log("Sending email...");
-  const nameInput = document.getElementById('name');
-  const emailInput = document.getElementById('email');
-  const phoneInput = document.getElementById('phone');
+async function sendEmail() {
+    console.log("Sending email...");
+    const form = document.getElementById('contact-form');
+    if (!form) {
+        alert('Error: Form not found.');
+        return;
+    }
 
-  if (!nameInput || !emailInput || !phoneInput) {
-    console.error("Form inputs not found:", {
-      name: !!nameInput,
-      email: !!emailInput,
-      phone: !!phoneInput,
-    });
-    alert("Error: Form fields not found.");
-    return;
-  }
+    const name = form.querySelector('#name').value.trim();
+    const email = form.querySelector('#email').value.trim();
+    const phone = form.querySelector('#phone').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const name = nameInput.value;
-  const email = emailInput.value;
-  const phone = phoneInput.value;
+    if (!name || !email || !phone) {
+        alert('Please fill out all contact fields.');
+        return;
+    }
 
-  if (!name || !email || !phone) {
-    alert('Please fill out all contact fields.');
-    return;
-  }
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
 
-  if (!Array.isArray(selectedModules) || selectedModules.length === 0) {
-    console.warn("No selected modules:", selectedModules);
-    alert("Bitte wähle mindestens ein Paket aus.");
-    return;
-  }
+    if (!Array.isArray(selectedModules) || selectedModules.length === 0) {
+        alert('Please select at least one package.');
+        return;
+    }
 
-  const form = document.getElementById('contact-form');
-  if (!form) {
-    console.error("Form #contact-form not found.");
-    alert("Error: Form not found.");
-    return;
-  }
+    document.getElementById('selectedModules').value = JSON.stringify(selectedModules);
 
-  form.action = './backend.php';
-  form.method = "post";
-  // document.getElementById('action').value = 'email';
-  // document.getElementById('selectedModules').value = JSON.stringify(selectedModules);
-  console.log("Form data:", { name, email, phone, selectedModules });
+    const emailBtn = form.querySelector('.btncolor:last-child');
+    if (emailBtn) {
+        emailBtn.disabled = true;
+        emailBtn.classList.add('subtle-scale');
+    }
 
-  const emailBtn = document.querySelector('#contact-form .btn-gradient:nth-child(2)');
-  if (emailBtn) {
-    emailBtn.disabled = true;
-    emailBtn.classList.add('subtle-scale');
-    form.submit();
-    setTimeout(() => {
-      emailBtn.classList.remove('subtle-scale');
-      emailBtn.disabled = false;
-    }, 200);
-  } else {
-    console.warn("Email button not found.");
-    form.submit();
-  }
+    try {
+        const formData = new FormData(form);
+        const response = await fetch('backend.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert('✅ Email sent successfully!');
+            showPage('front'); // ⬅️ Go back home
+        } else {
+            alert('❌ Failed to send email: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error in sendEmail:', error);
+        alert('⚠️ An error occurred while sending the email. Please try again.');
+    } finally {
+        if (emailBtn) {
+            emailBtn.disabled = false;
+            emailBtn.classList.remove('subtle-scale');
+        }
+    }
 }
+
+
 
 function showPage(id) {
   console.log("Showing page:", id);
